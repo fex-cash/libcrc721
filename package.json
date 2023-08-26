@@ -1,7 +1,12 @@
 {
   "name": "libcrc721",
   "version": "0.0.1",
+  "author": "fexcash",
   "description": "crc721 library",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fex-cash/libcrc721"
+  },
   "main": "index.js",
   "type": "module",
   "scripts": {
