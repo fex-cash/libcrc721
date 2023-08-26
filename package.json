@@ -1,0 +1,26 @@
+{
+  "name": "libcrc721",
+  "version": "0.0.1",
+  "description": "crc721 library",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "vitest --run --coverage",
+    "prebuild": "rm -rf dist",
+    "postbuild": "cp package.json dist && cp README.md dist",
+    "prepublishOnly": "npm run build && cp -r ./dist/* . && rm -rf ./dist",
+    "postpublish": "git clean -fd",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^0.34.2",
+    "typescript": "^5.2.2",
+    "vitest": "^0.34.2",
+    "dotenv": "^16.3.1"
+  },
+  "dependencies": {
+    "@mainnet-cash/contract": "^1.1.33",
+    "mainnet-js": "^1.1.28",
+    "tslib": "^2.6.2"
+  }
+}
