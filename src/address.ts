@@ -1,4 +1,4 @@
-import { getBadge, getBadgesByAddress } from "./badge"
+import { checkBadgeName, getBadge, getBadgesByAddress } from "./badge"
 
 export async function addressToBadgeName(address: string): Promise<string> {
     const badges = await getBadgesByAddress(address)
@@ -10,6 +10,7 @@ export async function addressToBadgeName(address: string): Promise<string> {
 }
 
 export async function badgeNameToAddress(badgeName: string): Promise<string> {
+    checkBadgeName(badgeName)
     const badge = await getBadge(badgeName)
     const cashAddr = badge?.owner
     if (!cashAddr) {

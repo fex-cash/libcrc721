@@ -1,8 +1,8 @@
-export interface Fetcher {
+export interface BadgeTxQuerier {
     getTxId(tokenCategory: string, commitment: string): Promise<string>
 }
 
-export class ChaingrapFetcher {
+export class ChaingrapBadgeTxQuerier implements BadgeTxQuerier {
     static defaultChaingraphUrl = "https://demo.chaingraph.cash/v1/graphql"
 
     async getTxId(tokenCategory: string, commitment: string) {
@@ -14,4 +14,4 @@ export class ChaingrapFetcher {
     }
 }
 
-export const mainnetChaingrapFetcher = new ChaingrapFetcher()
+export const mainnetChaingrapBadgeTxQuerier = new ChaingrapBadgeTxQuerier()

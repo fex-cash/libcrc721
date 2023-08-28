@@ -2,9 +2,9 @@ import { decodeAuthenticationInstructions } from '@bitauth/libauth';
 import { NftMinterContract } from './lib/NftMinter';
 import { cashAddrToLock } from './common/common';
 import { BadgeNftHolderContract } from './lib/BadgeNftHolder';
-import { getFetcher, getWallet } from './config';
+import { getBadgeTxQuerier, getWallet } from './config';
 import { getSinger } from './utils';
-import { getTokenByCategory, getTokensBySymbol } from './crc20';
+import { checkSymbol, getTokenByCategory, getTokensBySymbol } from './crc20';
 
 export interface Badge {
   tokenId: string
@@ -13,43 +13,69 @@ export interface Badge {
   badgeName: string
   info: {
     evmaddr?: string
-    ipadd?: string
+    ipaddr?: string
     social?: string
     email?: string
     remark?: string
   }
 }
 
-export function getBadgeName(symbol: string, index: number): string {
-  if (symbol.search("\-[0-9]+$") >= 0) {
-    throw new Error("Incorrect symbol")
-  }
+function _getBadgeName(symbol: string, index: number): string {
   return symbol + (index === 0 ? "" : `-${index}`)
 }
 
-export function splitBadgeName(badgeName: string): { symbol: string, index: number } {
+function _splitBadgeName(badgeName: string): { symbol: string, index: number } {
   let symbol = badgeName, index = 0
   const index_index = badgeName.search("\-[0-9]+$")
   if (index_index !== -1) {
     symbol = badgeName.slice(0, index_index)
     index = Number(badgeName.slice(index_index + 1, badgeName.length))
   }
-  if (getBadgeName(symbol, index) !== badgeName) {
-    throw new Error("Incorrect badgeName")
-  }
   return {
     symbol, index
   }
 }
 
+export function checkBadgeSymbol(symbol: string) {
+  checkSymbol(symbol)
+  if (symbol.search("\-[0-9]+$") >= 0) {
+    throw new Error("BadgeSymbol cannot match \-[0-9]+$")
+  }
+}
+
+export function checkBadgeName(badgeName: string) {
+  if (badgeName !== badgeName.trim()) {
+    throw new Error("BadgeName should not contain spaces at the beginning and end")
+  }
+  const { symbol, index } = _splitBadgeName(badgeName)
+  checkBadgeSymbol(symbol)
+  if (_getBadgeName(symbol, index) !== badgeName) {
+    throw new Error("Incorrect badgeName")
+  }
+}
+
+
+
+export function getBadgeName(symbol: string, index: number): string {
+  checkBadgeSymbol(symbol)
+  return _getBadgeName(symbol, index)
+}
+
+export function splitBadgeName(badgeName: string): { symbol: string, index: number } {
+  checkBadgeName(badgeName)
+  return _splitBadgeName(badgeName)
+}
+
+
 export async function getBadge(badgeName: string): Promise<Badge | null> {
+  checkBadgeName(badgeName)
   const { symbol, index } = splitBadgeName(badgeName)
   const tokens = await getTokensBySymbol(symbol)
   const canonicalToken = tokens.find((x) => x.isCanonical)
   if (!canonicalToken) {
     return
   }
-  const txId = await getFetcher().getTxId(canonicalToken.category, NftMinterContract.index2Commitment(index))
+  const txId = await getBadgeTxQuerier().getTxId(canonicalToken.category, NftMinterContract.index2Commitment(index))
   if (!txId) {
     return
   }

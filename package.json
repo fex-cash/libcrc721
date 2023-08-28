@@ -1,6 +1,6 @@
 {
   "name": "libcrc721",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "fexcash",
   "description": "crc721 library",
   "repository": {
@@ -20,8 +20,7 @@
   "devDependencies": {
     "@vitest/coverage-v8": "^0.34.2",
     "typescript": "^5.2.2",
-    "vitest": "^0.34.2",
-    "dotenv": "^16.3.1"
+    "vitest": "^0.34.2"
   },
   "dependencies": {
     "@mainnet-cash/contract": "^1.1.33",

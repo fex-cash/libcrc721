@@ -1,17 +1,24 @@
-import { badgeNameToAddress, addressToBadgeName } from "./index";
+import { Network } from "mainnet-js";
+import { badgeNameToAddress, addressToBadgeName, config, getWallet } from "./index";
 import { describe, it, expect } from 'vitest'
 
-import 'dotenv/config'
-const { Badge_Owner, Badge_Name } = process.env
+const Badge_Owner = "bchtest:qrfe6qx0js6k6v7nrrrt7prsezmk79s3mygrjdd5xk"
+const Badge_Name = "CRC721-1"
+config.network = Network.TESTNET
+config.badgeTxQuerier = new class {
+    async getTxId(category: string, commitment: string,) {
+        return "d5b3db6509a51b1be4e31155c3d8c8c31f85763f377152c204896a284fb4f4a8" // just test
+    }
+}
 
 it('addressToBadgeName', async () => {
     const data = await addressToBadgeName(Badge_Owner)
-    console.log(data)
+    expect(data).to.be.equal(Badge_Name)
 }, 10 * 1000);
 
 it('badgeNameToAddress', async () => {
     const data = await badgeNameToAddress(Badge_Name)
-    console.log(data)
+    expect(data).to.be.equal(Badge_Owner)
 }, 10 * 1000);
 
 

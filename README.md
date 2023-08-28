@@ -20,7 +20,7 @@ export interface Badge {
   badgeName: string
   info: {
     evmaddr?: string
-    ipadd?: string
+    ipaddr?: string
     social?: string
     email?: string
     remark?: string
@@ -127,31 +127,31 @@ config.connection = conn
 ```
 
 #### Using Testnet
-Note: The fetcher must be customized when using testnet.
+Note: The badgeTxQuerier must be customized when using testnet.
 ```ts
 import { Network } from "mainnet-js";
 import { config } from 'libcrc721';
 config.network = Network.TESTNET
 ```
 
-## Fetcher
-The default fetcher implements an interface to locate transaction ID by token category and commitment,
+## BadgeTxQuerier
+The default badgeTxQuerier implements an interface to locate transaction ID by token category and commitment,
 which using [Chaingraph](https://chaingraph.cash/).
 
 #### Modify Chaingraph URL
 ```ts
-import { mainnetChaingrapFetcher } from 'libcrc721';
-mainnetChaingrapFetcher.defaultChaingraphUrl = "https://demo.chaingraph.cash/v1/graphql"
+import { mainnetChaingrapBadgeTxQuerier } from 'libcrc721';
+mainnetChaingrapBadgeTxQuerier.defaultChaingraphUrl = "https://demo.chaingraph.cash/v1/graphql"
 ```
 
-#### Customized Fetcher
+#### Customized BadgeTxQuerier
 Users can query the transaction ID using their own API.
 ```ts
-import { config,Fetcher } from 'libcrc721';
-const fetcher:Fetcher = {
-    getTxId(tokenCategory: string, commitment: string){
-        return fetch(<CUSTOMER_API_URL>)
-    }
+import { config,BadgeTxQuerier } from 'libcrc721';
+const badgeTxQuerier:BadgeTxQuerier = {
+  getTxId(tokenCategory: string, commitment: string){
+    return fetch(<CUSTOMER_API_URL>)
+  }
 }
-config.fetcher = fetcher
+config.badgeTxQuerier = badgeTxQuerier
 ```

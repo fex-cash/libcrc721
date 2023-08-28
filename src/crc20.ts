@@ -1,27 +1,38 @@
 import { Contract } from '@mainnet-cash/contract';
-import { decodeCashAddress, encodeCashAddress, hash160, vmNumberToBigInt, decodeAuthenticationInstructions } from '@bitauth/libauth'
+import { decodeCashAddress, encodeCashAddress, hash160, vmNumberToBigInt, CashAddressNetworkPrefix } from '@bitauth/libauth'
 import { CashAddressType } from "@bitauth/libauth/build/lib/address/cash-address";
 import { disassembleBytecodeBCH } from "@bitauth/libauth/build/lib/vm/instruction-sets/common/instruction-sets-utils";
 import { config, getWallet } from './config';
 import { Network } from 'mainnet-js';
 
-export interface CRC20Token {
+interface BaseCRC20Token {
     symbol: string
     category: string
     name: string
     decimals: number
     mintAmt: number,
     totalSupply: number
-    isCanonical: boolean
+    isCanonical: boolean | undefined
+}
+
+export type CRC20Token = BaseCRC20Token & {
     type: "CRC20"
 }
 
-export type CRC721Token = CRC20Token & {
+export type CRC721Token = BaseCRC20Token & {
     authorAddress: string
     baseTokenURI: string
     mintPrice: number
     feeCategory: string
     type: "CRC721"
+}
+
+export type CRCToken = CRC20Token | CRC721Token
+
+export function checkSymbol(symbol: string) {
+    if (symbol !== symbol.trim()) {
+        throw new Error("Symbol should not contain spaces at the beginning and end")
+    }
 }
 
 async function getUtxosByAddress(address: any) {
@@ -98,7 +109,7 @@ function getNftMetaInfoFromRevealOpreturn(opreturnHex: string, opreturnAsm: stri
 }
 
 function pkhToCashAddr(pkh: Buffer) {
-    return encodeCashAddress(config.network === Network.MAINNET ? "bitcoincash" : "bchtest", 'p2pkh' as any, pkh)
+    return encodeCashAddress(CashAddressNetworkPrefix[config.network], 'p2pkh' as any, pkh)
 }
 
 // Returns a Symbol UTXO's address
@@ -108,6 +119,7 @@ function getAddressFromSymbol(symbol: string) {
 }
 
 export async function getTokensBySymbol(symbol: string): Promise<Array<CRC20Token | CRC721Token | null>> {
+    checkSymbol(symbol)
     let symbolAddress = getAddressFromSymbol(symbol)
     let utxoInfos = await getUtxosByAddress(symbolAddress)
     const tokens = [];
@@ -144,7 +156,7 @@ export async function getTokensBySymbol(symbol: string): Promise<Array<CRC20Toke
     tokens.forEach(v => {
         if (map[v.category] === "green") {
             v.isCanonical = true
-        } else {
+        } else if (map[v.category] === "red") {
             v.isCanonical = false
         }
     })
