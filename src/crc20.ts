@@ -15,11 +15,11 @@ interface BaseCRC20Token {
     isCanonical: boolean | undefined
 }
 
-export type CRC20Token = BaseCRC20Token & {
+export interface CRC20Token extends BaseCRC20Token {
     type: "CRC20"
 }
 
-export type CRC721Token = BaseCRC20Token & {
+export interface CRC721Token extends BaseCRC20Token {
     authorAddress: string
     baseTokenURI: string
     mintPrice: number

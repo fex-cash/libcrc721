@@ -12,11 +12,15 @@ config.badgeTxQuerier = new class {
 }
 
 it('addressToBadgeName', async () => {
+    expect(addressToBadgeName("bchtest:pracl7c4cspgv2fuu4wjmf3n3l97nuytm5aga035zw")).rejects.toThrow("No badge is set")
+    
     const data = await addressToBadgeName(Badge_Owner)
     expect(data).to.be.equal(Badge_Name)
 }, 10 * 1000);
 
 it('badgeNameToAddress', async () => {
+    expect(badgeNameToAddress("xxccccc")).rejects.toThrow("Cannot find xxccccc")
+
     const data = await badgeNameToAddress(Badge_Name)
     expect(data).to.be.equal(Badge_Owner)
 }, 10 * 1000);

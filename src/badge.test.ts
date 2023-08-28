@@ -46,11 +46,15 @@ const badge = {
 }
 
 it('getBadgesByAddress', async () => {
+    expect(await getBadgesByAddress("bchtest:pracl7c4cspgv2fuu4wjmf3n3l97nuytm5aga035zw")).to.be.deep.equal([])
+
     const data = await getBadgesByAddress(Badge_Owner)
     expect(data).to.be.deep.equal([badge])
 })
 
 it('getBadge', async () => {
+    expect(await getBadge("xxxxxfffassa")).to.be.deep.equal(undefined)
+
     const data = await getBadge(Badge_Name)
     expect(data).to.be.deep.equal(badge)
 })
