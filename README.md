@@ -28,28 +28,34 @@ export interface Badge {
 }
 ```
 
-`CRC20Token`
+`BaseCRC20Token`
 ```ts
-export interface CRC20Token {
+interface BaseCRC20Token {
     symbol: string
     category: string
     name: string
     decimals: number
-    mintAmt: number,
+    mintAmt: number
     totalSupply: number
-    isCanonical: boolean
-    type: "CRC20"
+    isCanonical: boolean | undefined
+}
+```
+
+`CRC20Token`
+```ts
+export type CRC20Token = BaseCRC20Token & {
+  type: "CRC20"
 }
 ```
 
 `CRC721Token`
 ```ts
-export type CRC721Token = CRC20Token & {
-    authorAddress: string
-    baseTokenURI: string
-    mintPrice: number
-    feeCategory: string
-    type: "CRC721"
+export type CRC721Token = BaseCRC20Token & {
+  authorAddress: string
+  baseTokenURI: string
+  mintPrice: number
+  feeCategory: string
+  type: "CRC721"
 }
 ```
 

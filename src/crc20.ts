@@ -10,7 +10,7 @@ interface BaseCRC20Token {
     category: string
     name: string
     decimals: number
-    mintAmt: number,
+    mintAmt: number
     totalSupply: number
     isCanonical: boolean | undefined
 }
