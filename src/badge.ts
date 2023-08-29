@@ -88,13 +88,13 @@ export async function getBadgesByAddress(owner: string): Promise<Badge[]> {
   const wallet = await getWallet().fromCashaddr(owner)
   const ownerLockingBytes = cashAddrToLock(wallet.getDepositAddress())
   const contract = new BadgeNftHolderContract(ownerLockingBytes, wallet.network)
-  const utxos = await contract.contract.getUtxos()
+  const utxos = await wallet.getAddressUtxos(contract.contract.getDepositAddress())
   let result = await Promise.all(utxos.map(async utxo => {
     const singer = await getSinger(utxo.txid)
     if (singer !== owner) {
       return null
     }
-    const tx = await (contract.contract as any).provider.mainnetProvider.getRawTransactionObject(utxo.txid)
+    const tx = await wallet.getNetworkProvider().getRawTransactionObject(utxo.txid)
     const info: any = {}
     tx.vout.filter((v: any) => v.scriptPubKey.asm.indexOf("OP_RETURN") === 0).forEach((output: any) => {
       const data: any = decodeAuthenticationInstructions(Buffer.from(output.scriptPubKey.hex, 'hex'))
