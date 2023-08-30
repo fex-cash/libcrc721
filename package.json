@@ -1,6 +1,6 @@
 {
   "name": "libcrc721",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "author": "fexcash",
   "description": "crc721 library",
   "repository": {
@@ -15,7 +15,8 @@
     "postbuild": "cp package.json dist && cp README.md dist",
     "prepublishOnly": "npm run build && cp -r ./dist/* . && rm -rf ./dist",
     "postpublish": "git clean -fd",
-    "build": "tsc"
+    "build": "tsc",
+    "postinstall": "patch-package"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^0.34.2",
@@ -24,7 +25,8 @@
   },
   "dependencies": {
     "@mainnet-cash/contract": "^1.1.33",
-    "mainnet-js": "^1.1.28",
-    "tslib": "^2.6.2"
+    "mainnet-js": "1.1.28",
+    "tslib": "^2.6.2",
+    "patch-package": "^8.0.0"
   }
 }

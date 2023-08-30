@@ -3,7 +3,6 @@ import { decodeCashAddress, encodeCashAddress, hash160, vmNumberToBigInt, CashAd
 import { CashAddressType } from "@bitauth/libauth/build/lib/address/cash-address";
 import { disassembleBytecodeBCH } from "@bitauth/libauth/build/lib/vm/instruction-sets/common/instruction-sets-utils";
 import { config, getWallet } from './config';
-import { Network } from 'mainnet-js';
 
 interface BaseCRC20Token {
     symbol: string
@@ -96,7 +95,12 @@ async function getMetaInfoForSymbol(tx: any, symbol: string | undefined, checkSy
 
 function getNftMetaInfoFromRevealOpreturn(opreturnHex: string, opreturnAsm: string) {
     const arr = opreturnAsm.split(" ")
-    const baseTokenURI = Buffer.from(arr[2], "hex").toString()
+    let baseTokenURI
+    try {
+        baseTokenURI = Buffer.from(arr[2], "hex").toString()
+    } catch (error) {
+        baseTokenURI = arr[2]
+    }
     let feeCategory = arr[3].replace("OP_", "")
     feeCategory = feeCategory === "0" ? "" : feeCategory
     const authorAddress = pkhToCashAddr(Buffer.from(arr[4], "hex"))

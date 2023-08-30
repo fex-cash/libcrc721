@@ -1,0 +1,38 @@
+diff --git a/node_modules/mainnet-js/dist/module/transaction/Wif.js b/node_modules/mainnet-js/dist/module/transaction/Wif.js
+index 66b56f2..4a622b8 100644
+--- a/node_modules/mainnet-js/dist/module/transaction/Wif.js
++++ b/node_modules/mainnet-js/dist/module/transaction/Wif.js
+@@ -236,6 +236,14 @@ export async function getSuitableUtxos(inputs, amountRequired, bestHeight, feePa
+             throw Error(`No suitable token utxos available to send token with id "${request.tokenId}", capability "${request.capability}", commitment "${request.commitment}"`);
+         }
+     }
++
++    // HACK CODE:
++    // to add the bch inside input0 with tokens
++    if (tokenOperation === "genesis" && availableInputs[0].token) {
++        suitableUtxos.push(availableInputs[0]);
++        amountAvailable += BigInt(availableInputs[0].satoshis);
++    }
++
+     // console.log(suitableUtxos)
+     // find plain bch outputs
+     for (const u of availableInputs) {
+diff --git a/node_modules/mainnet-js/src/transaction/Wif.ts b/node_modules/mainnet-js/src/transaction/Wif.ts
+index 8455676..b90a5ec 100644
+--- a/node_modules/mainnet-js/src/transaction/Wif.ts
++++ b/node_modules/mainnet-js/src/transaction/Wif.ts
+@@ -360,6 +360,14 @@ export async function getSuitableUtxos(
+       );
+     }
+   }
++
++  // HACK CODE:
++  // to add the bch inside input0 with tokens
++  if (tokenOperation === "genesis" && availableInputs[0].token) {
++    suitableUtxos.push(availableInputs[0]);
++    amountAvailable += BigInt(availableInputs[0].satoshis);
++  }
++
+   // console.log(suitableUtxos)
+   // find plain bch outputs
+   for (const u of availableInputs) {
