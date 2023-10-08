@@ -1,10 +1,12 @@
 import { decodeAuthenticationInstructions } from '@bitauth/libauth';
 import { NftMinterContract } from './lib/NftMinter';
 import { cashAddrToLock } from './common/common';
-import { BadgeNftHolderContract } from './lib/BadgeNftHolder';
-import { getBadgeTxQuerier, getWallet } from './config';
+import { config, getBadgeTxQuerier } from './config';
 import { getSinger } from './utils';
 import { checkSymbol, getTokenByCategory, getTokensBySymbol } from './crc20';
+import { getContractAddress } from './lib/contract';
+import { Buffer } from "buffer"
+import { getElectrumClient } from './common/electrum';
 
 export interface Badge {
   tokenId: string
@@ -85,16 +87,16 @@ export async function getBadge(badgeName: string): Promise<Badge | null> {
 }
 
 export async function getBadgesByAddress(owner: string): Promise<Badge[]> {
-  const wallet = await getWallet().fromCashaddr(owner)
-  const ownerLockingBytes = cashAddrToLock(wallet.getDepositAddress())
-  const contract = new BadgeNftHolderContract(ownerLockingBytes, wallet.network)
-  const utxos = await wallet.getAddressUtxos(contract.contract.getDepositAddress())
+  const ownerLockingBytes = cashAddrToLock(owner)
+  const contractAddress = getContractAddress(config.network, 'OP_SWAP 6261646765 OP_EQUALVERIFY OP_INPUTINDEX OP_1 OP_NUMEQUALVERIFY OP_0 OP_UTXOBYTECODE OP_EQUALVERIFY OP_1 OP_UTXOTOKENCOMMITMENT OP_1 OP_OUTPUTTOKENCOMMITMENT OP_EQUALVERIFY OP_1 OP_UTXOTOKENCATEGORY OP_1 OP_OUTPUTTOKENCATEGORY OP_EQUAL', [ownerLockingBytes], ["bytes"])
+  const electrumClient = await getElectrumClient()
+  const utxos = await electrumClient.getAddressUtxos(contractAddress as string)
   let result = await Promise.all(utxos.map(async utxo => {
-    const singer = await getSinger(utxo.txid)
+    const singer = await getSinger(utxo.tx_hash)
     if (singer !== owner) {
       return null
     }
-    const tx = await wallet.getNetworkProvider().getRawTransactionObject(utxo.txid)
+    const tx = await electrumClient.blockchain_transaction_get(utxo.tx_hash, true)
     const info: any = {}
     tx.vout.filter((v: any) => v.scriptPubKey.asm.indexOf("OP_RETURN") === 0).forEach((output: any) => {
       const data: any = decodeAuthenticationInstructions(Buffer.from(output.scriptPubKey.hex, 'hex'))
@@ -105,17 +107,17 @@ export async function getBadgesByAddress(owner: string): Promise<Badge[]> {
         info[key] = Buffer.from(data[2].data, 'hex').toString()
       }
     })
-    return { info, token: utxo.token }
+    return { info, token: utxo.token_data }
   }))
   result = result.filter(x => x)
   const basgesResult = await Promise.all(result.map(async v => {
-    const { token: { tokenId, commitment }, info } = v as any
+    const { token: { category, commitment }, info } = v
     const index = NftMinterContract.commitment2Index(commitment)
-    const { symbol, isCanonical } = (await getTokenByCategory(tokenId))!
+    const { symbol, isCanonical } = (await getTokenByCategory(category))!
     if (!isCanonical) {
       return null
     }
-    return { tokenId, index, info, badgeName: getBadgeName(symbol, index), owner }
+    return { tokenId: category, index, info, badgeName: getBadgeName(symbol, index), owner }
   }))
   return basgesResult.filter(v => v)
 }

@@ -25,12 +25,12 @@ export interface Badge {
     email?: string
     remark?: string
   }
-};
+}
 ```
 
 `BaseCRC20Token`
 ```ts
-interface BaseCRC20Token {
+export interface BaseCRC20Token {
     symbol: string
     category: string
     name: string
@@ -38,14 +38,14 @@ interface BaseCRC20Token {
     mintAmt: number
     totalSupply: number
     isCanonical: boolean
-};
+}
 ```
 
 `CRC20Token`
 ```ts
 export interface CRC20Token extends BaseCRC20Token {
     type: "CRC20"
-};
+}
 ```
 
 `CRC721Token`
@@ -56,7 +56,7 @@ export interface CRC721Token extends BaseCRC20Token {
     mintPrice: number
     feeCategory: string
     type: "CRC721"
-};
+}
 ```
 
 `CRCToken`
@@ -127,21 +127,15 @@ console.log(getBadgeName("xx-1")) // {symbol:"xx",index:1}
 
 #### Using customized Electrum URL
 ```ts
-import { Connection } from "mainnet-js";
 import { config } from 'libcrc721';
-const conn = new Connection(
-  "mainnet",
-  "wss://bch.imaginary.cash:50004" 
-)
-config.connection = conn
+config.defaultElectrumClientUrl =  "wss://bch.imaginary.cash:50004"
 ```
 
 #### Using Testnet
 Note: The badgeTxQuerier must be customized when using testnet.
 ```ts
-import { Network } from "mainnet-js";
 import { config } from 'libcrc721';
-config.network = Network.TESTNET
+config.network = "testnet"
 ```
 
 ## BadgeTxQuerier

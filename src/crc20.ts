@@ -1,8 +1,10 @@
-import { Contract } from '@mainnet-cash/contract';
 import { decodeCashAddress, encodeCashAddress, hash160, vmNumberToBigInt, CashAddressNetworkPrefix } from '@bitauth/libauth'
 import { CashAddressType } from "@bitauth/libauth/build/lib/address/cash-address";
 import { disassembleBytecodeBCH } from "@bitauth/libauth/build/lib/vm/instruction-sets/common/instruction-sets-utils";
-import { config, getWallet } from './config';
+import { config } from './config';
+import { getContractAddress } from './lib/contract';
+import { Buffer } from "buffer"
+import { getElectrumClient } from './common/electrum';
 
 interface BaseCRC20Token {
     symbol: string
@@ -35,16 +37,14 @@ export function checkSymbol(symbol: string) {
 }
 
 async function getUtxosByAddress(address: any) {
-    const Wallet = getWallet()
-    const provider = Wallet.prototype.getNetworkProvider()
-    return await provider.getUtxos(address)
+    const electrumClient = await getElectrumClient()
+    return await electrumClient.getAddressUtxos(address)
 }
 
 async function getTxByTxid(txid: string) {
     try {
-        const Wallet = getWallet()
-        const provider = Wallet.prototype.getNetworkProvider()
-        return await provider.getRawTransactionObject(txid)
+        const electrumClient = await getElectrumClient()
+        return await electrumClient.blockchain_transaction_get(txid, true)
     } catch (error) {
         console.log("getTxByTxid error: ", error)
         return null
@@ -129,10 +129,10 @@ export async function getTokensBySymbol(symbol: string): Promise<Array<CRC20Toke
     const tokens = [];
     for (let i in utxoInfos) {
         let utxoInfo = utxoInfos[i]
-        if (utxoInfo.vout !== 0) {
+        if (utxoInfo.tx_pos !== 0) {
             continue
         }
-        let tx = await getTxByTxid(utxoInfo.txid); // get the detail of genesis Tx which reveals MetaInfo
+        let tx = await getTxByTxid(utxoInfo.tx_hash); // get the detail of genesis Tx which reveals MetaInfo
         let [category, name, decimals, mintAmt, confirmations, supply] = await getMetaInfoForSymbol(tx, symbol)
         if (category !== undefined) {
             // nft
@@ -148,7 +148,7 @@ export async function getTokensBySymbol(symbol: string): Promise<Array<CRC20Toke
                 decimals: decimals,
                 mintAmt: mintAmt,
                 revealHeight: utxoInfo.height,
-                revealTxid: utxoInfo.txid,
+                revealTxid: utxoInfo.tx_hash,
                 revealTxConfirmations: confirmations,
                 totalSupply: supply,
                 type: "CRC20",
@@ -191,24 +191,8 @@ function getCategoryColorMap(tokens: any[]) {
 
 
 async function getCovenantAddress(recipientPK: Uint8Array, metaInfo: Uint8Array, symbolLen: number) {
-    const goCS = `
-    pragma cashscript ^0.8.0;
-
-    contract GenesisOutput(pubkey recipientPK, bytes metainfo, int symbolLength) {
-        function reveal(sig recipientSig) {
-            require(checkSig(recipientSig, recipientPK));
-            bytes20 symbolHash = hash160(metainfo.split(symbolLength)[0]);
-            bytes25 outLockingBytecode = new LockingBytecodeP2PKH(symbolHash);
-            require(tx.outputs[0].lockingBytecode == outLockingBytecode);
-        }
-    }
-    `;
-    let contract = new Contract(goCS,
-        [recipientPK, metaInfo, symbolLen],
-        config.network
-    );
-    let contractAddress = contract.getDepositAddress();
-    const addr = decodeCashAddress(contractAddress) as {
+    const contractAddress = getContractAddress(config.network, 'OP_3 OP_ROLL OP_SWAP OP_CHECKSIGVERIFY OP_SWAP OP_SPLIT OP_DROP OP_HASH160 76a914 OP_SWAP OP_CAT 88ac OP_CAT OP_0 OP_OUTPUTBYTECODE OP_EQUAL', [recipientPK, metaInfo, BigInt(symbolLen)], ["pubkey", "bytes", "int"])
+    const addr = decodeCashAddress(contractAddress as string) as {
         payload: Uint8Array;
         prefix: string;
         type: CashAddressType;
@@ -320,9 +304,8 @@ async function _getTokenByCategory(category: string) {
         return undefined
     }
     let p2shAddress = addresses[0]
-    const Wallet = getWallet()
-    const provider = Wallet.prototype.getNetworkProvider()
-    let histories = await provider.getHistory(p2shAddress)
+    const electrumClient = await getElectrumClient()
+    let histories = await electrumClient.blockchain_address_getHistory(p2shAddress)
     for (let i in histories) {
         let history = histories[i]
         let tx = await getTxByTxid(history.tx_hash)

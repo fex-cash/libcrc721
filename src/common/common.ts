@@ -1,6 +1,7 @@
 import {
     cashAddressToLockingBytecode,
-  } from '@bitauth/libauth';
+} from '@bitauth/libauth';
+import { Buffer } from "buffer"
 
 export function reverseHexBytes(hexStr: string): string {
     if (hexStr === '') {

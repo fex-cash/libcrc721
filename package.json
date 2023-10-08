@@ -1,22 +1,27 @@
 {
   "name": "libcrc721",
-  "version": "0.0.5",
+  "version": "0.1.0",
   "author": "fexcash",
   "description": "crc721 library",
   "repository": {
     "type": "git",
     "url": "https://github.com/fex-cash/libcrc721"
   },
+  "keywords": [
+    "Bitcoin Cash",
+    "BCH",
+    "CRC20",
+    "CRC721"
+  ],
   "main": "index.js",
   "type": "module",
   "scripts": {
     "test": "vitest --run --coverage",
-    "prebuild": "rm -rf dist",
+    "prebuild": "npm run test && rm -rf dist",
     "postbuild": "cp package.json dist && cp README.md dist",
     "prepublishOnly": "npm run build && cp -r ./dist/* . && rm -rf ./dist",
     "postpublish": "git clean -fd",
-    "build": "tsc",
-    "postinstall": "patch-package"
+    "build": "tsc"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^0.34.2",
@@ -24,9 +29,9 @@
     "vitest": "^0.34.2"
   },
   "dependencies": {
-    "@mainnet-cash/contract": "^1.1.33",
-    "mainnet-js": "1.1.28",
-    "tslib": "^2.6.2",
-    "patch-package": "^8.0.0"
+    "@bitauth/libauth": "^2.0.0-alpha.8",
+    "@tkone7/electrum-client-js": "^0.1.2",
+    "buffer": "^6.0.3",
+    "tslib": "^2.6.2"
   }
 }

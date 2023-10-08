@@ -1,11 +1,11 @@
 import { Badge } from './badge';
 import { describe, it, expect } from 'vitest'
 import { config, getBadge, getBadgeName, getBadgesByAddress, splitBadgeName } from './index';
-import { Network } from 'mainnet-js';
 
 const Badge_Owner = "bchtest:qrfe6qx0js6k6v7nrrrt7prsezmk79s3mygrjdd5xk"
 const Badge_Name = "CRC721-1"
-config.network = Network.TESTNET
+config.network = "testnet"
+
 config.badgeTxQuerier = new class {
     async getTxId(category: string, commitment: string,) {
         return "d5b3db6509a51b1be4e31155c3d8c8c31f85763f377152c204896a284fb4f4a8" // just test
@@ -50,11 +50,11 @@ it('getBadgesByAddress', async () => {
 
     const data = await getBadgesByAddress(Badge_Owner)
     expect(data).to.be.deep.equal([badge])
-})
+}, 10000)
 
 it('getBadge', async () => {
     expect(await getBadge("xxxxxfffassa")).to.be.deep.equal(undefined)
 
     const data = await getBadge(Badge_Name)
     expect(data).to.be.deep.equal(badge)
-})
+}, 10000)
