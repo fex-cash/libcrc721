@@ -53,7 +53,7 @@ it('getBadgesByAddress', async () => {
 }, 10000)
 
 it('getBadge', async () => {
-    expect(await getBadge("xxxxxfffassa")).to.be.deep.equal(undefined)
+    expect(await getBadge("xxxxxfffassa")).to.be.deep.equal(null)
 
     const data = await getBadge(Badge_Name)
     expect(data).to.be.deep.equal(badge)

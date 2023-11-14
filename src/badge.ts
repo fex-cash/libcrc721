@@ -73,17 +73,17 @@ export async function getBadge(badgeName: string): Promise<Badge | null> {
   checkBadgeName(badgeName)
   const { symbol, index } = splitBadgeName(badgeName)
   const tokens = await getTokensBySymbol(symbol)
-  const canonicalToken = tokens.find((x) => x.isCanonical)
+  const canonicalToken = tokens.find((x) => x?.isCanonical)
   if (!canonicalToken) {
-    return
+    return null
   }
   const txId = await getBadgeTxQuerier().getTxId(canonicalToken.category, NftMinterContract.index2Commitment(index))
   if (!txId) {
-    return
-  }
+    return null
+  } 
   const singer: any = await getSinger(txId)
   const badges = await getBadgesByAddress(singer)
-  return badges.find(x => x.badgeName === badgeName)
+  return badges.find(x => x.badgeName === badgeName) || null
 }
 
 export async function getBadgesByAddress(owner: string): Promise<Badge[]> {
@@ -111,7 +111,7 @@ export async function getBadgesByAddress(owner: string): Promise<Badge[]> {
   }))
   result = result.filter(x => x)
   const basgesResult = await Promise.all(result.map(async v => {
-    const { token: { category, commitment }, info } = v
+    const { token: { category, commitment }, info } = v!
     const index = NftMinterContract.commitment2Index(commitment)
     const { symbol, isCanonical } = (await getTokenByCategory(category))!
     if (!isCanonical) {
@@ -119,5 +119,5 @@ export async function getBadgesByAddress(owner: string): Promise<Badge[]> {
     }
     return { tokenId: category, index, info, badgeName: getBadgeName(symbol, index), owner }
   }))
-  return basgesResult.filter(v => v)
+  return basgesResult.filter(v => v) as Badge[]
 }

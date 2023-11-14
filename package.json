@@ -1,11 +1,19 @@
 {
   "name": "libcrc721",
-  "version": "0.1.0",
-  "author": "fexcash",
+  "version": "0.1.1",
   "description": "crc721 library",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/fex-cash/libcrc721"
+  },
+  "scripts": {
+    "test": "vitest --run --coverage",
+    "dev": "father dev",
+    "build": "father build",
+    "build:deps": "father prebundle",
+    "prepublishOnly": "father doctor && npm run test && npm run build"
   },
   "keywords": [
     "Bitcoin Cash",
@@ -13,25 +21,22 @@
     "CRC20",
     "CRC721"
   ],
-  "main": "index.js",
-  "type": "module",
-  "scripts": {
-    "test": "vitest --run --coverage",
-    "prebuild": "npm run test && rm -rf dist",
-    "postbuild": "cp package.json dist && cp README.md dist",
-    "prepublishOnly": "npm run build && cp -r ./dist/* . && rm -rf ./dist",
-    "postpublish": "git clean -fd",
-    "build": "tsc"
-  },
-  "devDependencies": {
-    "@vitest/coverage-v8": "^0.34.2",
-    "typescript": "^5.2.2",
-    "vitest": "^0.34.2"
+  "files": [
+    "dist",
+    "compiled"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "dependencies": {
+    "@babel/runtime": "^7.23.2",
     "@bitauth/libauth": "^2.0.0-alpha.8",
     "@tkone7/electrum-client-js": "^0.1.2",
-    "buffer": "^6.0.3",
-    "tslib": "^2.6.2"
+    "buffer": "^6.0.3"
+  },
+  "devDependencies": {
+    "father": "^4.3.7",
+    "@vitest/coverage-v8": "^0.34.2",
+    "vitest": "^0.34.2"
   }
 }

@@ -2,11 +2,11 @@ import { disassembleBytecodeBCH } from '@bitauth/libauth/build/lib/vm/instructio
 import { OpcodesBCH, encodeDataPush, hexToBin, LockingBytecodeType, bigIntToVmNumber, utf8ToBin, binToUtf8, vmNumberToBigInt, isVmNumberError, encodeAuthenticationInstructions, decodeAuthenticationInstructions, hash160, lockingBytecodeToCashAddress } from '@bitauth/libauth';
 
 const Op = OpcodesBCH;
-function asmToBytecode(asm) {
+function asmToBytecode(asm: any) {
     // Remove any duplicate whitespace
     asm = asm.replace(/\s+/g, ' ').trim();
     // Convert the ASM tokens to AuthenticationInstructions
-    const instructions = asm.split(' ').map((token) => {
+    const instructions = asm.split(' ').map((token: any) => {
         if (token.startsWith('OP_')) {
             return { opcode: Op[token] };
         }
@@ -16,7 +16,7 @@ function asmToBytecode(asm) {
     return encodeAuthenticationInstructions(instructions);
 }
 
-function bytecodeToScript(bytecode) {
+function bytecodeToScript(bytecode: any) {
     // Convert the bytecode to AuthenticationInstructions
     const instructions = decodeAuthenticationInstructions(bytecode);
     // Convert the AuthenticationInstructions to script elements
@@ -24,13 +24,13 @@ function bytecodeToScript(bytecode) {
     return script;
 }
 
-function asmToScript(asm) {
+function asmToScript(asm: any) {
     return bytecodeToScript(asmToBytecode(asm));
 }
 
-function scriptToBytecode(script) {
+function scriptToBytecode(script: any) {
     // Convert the script elements to AuthenticationInstructions
-    const instructions = script.map((opOrData) => {
+    const instructions = script.map((opOrData: any) => {
         if (typeof opOrData === 'number') {
             return { opcode: opOrData };
         }
@@ -40,7 +40,7 @@ function scriptToBytecode(script) {
     return encodeAuthenticationInstructions(instructions);
 }
 
-function encodeLockingBytecodeP2sh20(p2sh20Hash) {
+function encodeLockingBytecodeP2sh20(p2sh20Hash: any) {
     return Uint8Array.from([
         169 /* Opcodes.OP_HASH160 */,
         20 /* Opcodes.OP_PUSHBYTES_20 */,
@@ -49,31 +49,31 @@ function encodeLockingBytecodeP2sh20(p2sh20Hash) {
     ])
 }
 
-function addressContentsToLockingBytecode({ payload, type, }) {
+function addressContentsToLockingBytecode({ payload, type, }: any) {
     if (type === LockingBytecodeType.p2sh20) {
         return encodeLockingBytecodeP2sh20(payload);
     }
 };
 
-function scriptToLockingBytecode(script, addressType) {
+function scriptToLockingBytecode(script: any, addressType: any) {
     const scriptBytecode = scriptToBytecode(script);
     const scriptHash = hash160(scriptBytecode)
-    const addressContents = { payload: scriptHash, type: LockingBytecodeType[addressType] };
+    const addressContents = { payload: scriptHash, type: (LockingBytecodeType as any)[addressType] };
     const lockingBytecode = addressContentsToLockingBytecode(addressContents);
     return lockingBytecode;
 }
 
-function scriptToAddress(script, network, addressType, tokenSupport) {
+function scriptToAddress(script: any, network: any, addressType: any, tokenSupport: any) {
     const lockingBytecode = scriptToLockingBytecode(script, addressType);
     const prefix = network === "testnet" ? "bchtest" : "bitcoincash";
-    const address = lockingBytecodeToCashAddress(lockingBytecode, prefix, { tokenSupport });
+    const address = lockingBytecodeToCashAddress(lockingBytecode as any, prefix, { tokenSupport });
     return address;
 }
 
-function encodeBool(bool) {
+function encodeBool(bool: any) {
     return bool ? encodeInt(1n) : encodeInt(0n);
 }
-function decodeBool(encodedBool) {
+function decodeBool(encodedBool: any) {
     // Any encoding of 0 is false, else true
     for (let i = 0; i < encodedBool.byteLength; i += 1) {
         if (encodedBool[i] !== 0) {
@@ -85,10 +85,10 @@ function decodeBool(encodedBool) {
     }
     return false;
 }
-function encodeInt(int) {
+function encodeInt(int: any) {
     return bigIntToVmNumber(int);
 }
-function decodeInt(encodedInt, maxLength = 8) {
+function decodeInt(encodedInt: any, maxLength = 8) {
     const options = { maximumVmNumberByteLength: maxLength };
     const result = vmNumberToBigInt(encodedInt, options);
     if (isVmNumberError(result)) {
@@ -96,23 +96,23 @@ function decodeInt(encodedInt, maxLength = 8) {
     }
     return result;
 }
-function encodeString(str) {
+function encodeString(str: any) {
     return utf8ToBin(str);
 }
-function decodeString(encodedString) {
+function decodeString(encodedString: any) {
     return binToUtf8(encodedString);
 }
-function placeholder(size) {
+function placeholder(size: any) {
     return new Uint8Array(size).fill(0);
 }
 
 class BytesType {
     public bound: any
 
-    constructor(bound) {
+    constructor(bound: any) {
         this.bound = bound;
     }
-    static fromString(str) {
+    static fromString(str: any) {
         const bound = str === 'byte' ? 1 : Number.parseInt(str.substring(5), 10) || undefined;
         return new BytesType(bound);
     }
@@ -131,19 +131,19 @@ PrimitiveType["SIG"] = "sig";
 PrimitiveType["DATASIG"] = "datasig";
 PrimitiveType["ANY"] = "any";
 
-function parseType(str) {
+function parseType(str: any) {
     if (str.startsWith('byte'))
         return BytesType.fromString(str);
     return PrimitiveType[str.toUpperCase()];
 }
 
 class TypeError extends Error {
-    constructor(actual, expected) {
+    constructor(actual: any, expected: any) {
         super(`Found type '${actual}' where type '${expected.toString()}' was expected`);
     }
 }
 
-function encodeArgument(argument, typeStr) {
+function encodeArgument(argument: any, typeStr: any) {
     let type = parseType(typeStr);
     if (type === PrimitiveType.BOOL) {
         if (typeof argument !== 'boolean') {
@@ -193,11 +193,11 @@ function encodeArgument(argument, typeStr) {
     return argument;
 }
 
-function calculateBytesize(script) {
+function calculateBytesize(script: any) {
     return scriptToBytecode(script).byteLength;
 }
 
-function bytecodeToAsm(bytecode) {
+function bytecodeToAsm(bytecode: any) {
     // Convert the bytecode to libauth's ASM format
     let asm = disassembleBytecodeBCH(bytecode);
     // COnvert libauth's ASM format to BITBOX's
@@ -209,12 +209,12 @@ function bytecodeToAsm(bytecode) {
     return asm;
 }
 
-function scriptToAsm(script) {
+function scriptToAsm(script: any) {
     return bytecodeToAsm(scriptToBytecode(script));
 }
 
-function replaceBytecodeNop(script) {
-    const index = script.findIndex((op) => op === Op.OP_NOP);
+function replaceBytecodeNop(script: any) {
+    const index = script.findIndex((op: any) => op === Op.OP_NOP);
     if (index < 0)
         return script;
     // Remove the OP_NOP
@@ -243,7 +243,7 @@ function replaceBytecodeNop(script) {
     return asmToScript(scriptToAsm(script));
 }
 
-function generateRedeemScript(baseScript, encodedArgs) {
+function generateRedeemScript(baseScript: any, encodedArgs: any) {
     return replaceBytecodeNop([...encodedArgs, ...baseScript]);
 }
 

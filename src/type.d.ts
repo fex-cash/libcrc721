@@ -1,0 +1,1 @@
+declare module '@tkone7/electrum-client-js

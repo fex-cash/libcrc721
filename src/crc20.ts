@@ -126,7 +126,7 @@ export async function getTokensBySymbol(symbol: string): Promise<Array<CRC20Toke
     checkSymbol(symbol)
     let symbolAddress = getAddressFromSymbol(symbol)
     let utxoInfos = await getUtxosByAddress(symbolAddress)
-    const tokens = [];
+    const tokens: any = [];
     for (let i in utxoInfos) {
         let utxoInfo = utxoInfos[i]
         if (utxoInfo.tx_pos !== 0) {
@@ -157,7 +157,7 @@ export async function getTokensBySymbol(symbol: string): Promise<Array<CRC20Toke
         }
     }
     const map = getCategoryColorMap(tokens)
-    tokens.forEach(v => {
+    tokens.forEach((v: any) => {
         if (map[v.category] === "green") {
             v.isCanonical = true
         } else if (map[v.category] === "red") {
@@ -279,14 +279,14 @@ async function getMetaInfoFromGenesisOutput(scriptType: string, scriptPubkeyASM:
     }
 }
 
-export async function getTokenByCategory(category: string): Promise<CRC20Token | CRC721Token> {
+export async function getTokenByCategory(category: string): Promise<CRC20Token | CRC721Token | null> {
     const token = await _getTokenByCategory(category)
     if (!token) {
         return null
     }
     const { symbol } = token
     const tokens = await getTokensBySymbol(symbol)
-    return tokens.find(x => x.category === category)
+    return tokens.find(x => x?.category === category) || null
 }
 
 async function _getTokenByCategory(category: string) {
