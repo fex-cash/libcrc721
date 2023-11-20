@@ -42,13 +42,8 @@ async function getUtxosByAddress(address: any) {
 }
 
 async function getTxByTxid(txid: string) {
-    try {
-        const electrumClient = await getElectrumClient()
-        return await electrumClient.blockchain_transaction_get(txid, true)
-    } catch (error) {
-        console.log("getTxByTxid error: ", error)
-        return null
-    }
+    const electrumClient = await getElectrumClient()
+    return await electrumClient.blockchain_transaction_get(txid, true)
 }
 
 async function getMetaInfoForSymbol(tx: any, symbol: string | undefined, checkSymbol: boolean = true, categoryWanted: any = undefined) {
@@ -59,7 +54,6 @@ async function getMetaInfoForSymbol(tx: any, symbol: string | undefined, checkSy
         && tx.vout[2].scriptPubKey?.type == 'nulldata'
         && tx.vout[2].scriptPubKey?.hex?.length == 20
         && tx.vout[2].scriptPubKey?.hex.startsWith('6a08')) {
-
         mintAmt = Number('0x' + tx.vout[2].scriptPubKey.hex.substr(4));
     }
 
@@ -76,14 +70,19 @@ async function getMetaInfoForSymbol(tx: any, symbol: string | undefined, checkSy
                 // if we find the genesis input for this token category
                 if (category === vin.txid && vin.vout === 0) {
                     // vin[j] spends a genesis output
-                    let commitTx = await getTxByTxid(vin.txid) // this tx committed the MetaInfo
-                    const result = await getMetaInfoFromGenesisOutput(commitTx.vout[0].scriptPubKey.type, commitTx.vout[0].scriptPubKey.asm, vin.scriptSig.asm)
+                    const electrumClient = await getElectrumClient()
+                    const [commitTx, { height }] = await Promise.all([
+                        getTxByTxid(vin.txid),
+                        electrumClient.request("blockchain.headers.get_tip", [])
+                    ])
+                    const result = getMetaInfoFromGenesisOutput(commitTx.vout[0].scriptPubKey.type, commitTx.vout[0].scriptPubKey.asm, vin.scriptSig.asm)
                     if (result) {
+                        let commitHeight = commitTx.confirmations > 0 ? height - commitTx.confirmations + 1 : undefined
                         if (checkSymbol && result.symbol == symbol) {
-                            return [category, result.name, result.decimals, mintAmt, tx.confirmations, tokenData.amount];
+                            return [category, result.name, result.decimals, mintAmt, tx.confirmations, tokenData.amount, commitHeight];
                         }
                         if (!checkSymbol) {
-                            return [result.symbol, category, result.name, result.decimals, mintAmt, tx.confirmations, tokenData.amount];
+                            return [result.symbol, category, result.name, result.decimals, mintAmt, tx.confirmations, tokenData.amount, commitHeight];
                         }
                     }
                 }
@@ -127,13 +126,12 @@ export async function getTokensBySymbol(symbol: string): Promise<Array<CRC20Toke
     let symbolAddress = getAddressFromSymbol(symbol)
     let utxoInfos = await getUtxosByAddress(symbolAddress)
     const tokens: any = [];
-    for (let i in utxoInfos) {
-        let utxoInfo = utxoInfos[i]
+    await Promise.all(utxoInfos.map(async utxoInfo => {
         if (utxoInfo.tx_pos !== 0) {
-            continue
+            return
         }
         let tx = await getTxByTxid(utxoInfo.tx_hash); // get the detail of genesis Tx which reveals MetaInfo
-        let [category, name, decimals, mintAmt, confirmations, supply] = await getMetaInfoForSymbol(tx, symbol)
+        let [category, name, decimals, mintAmt, confirmations, supply, commitHeight] = await getMetaInfoForSymbol(tx, symbol)
         if (category !== undefined) {
             // nft
             let info = {}
@@ -141,13 +139,14 @@ export async function getTokensBySymbol(symbol: string): Promise<Array<CRC20Toke
             if (lastVout.scriptPubKey.hex.indexOf("6a06435243373231") === 0) {
                 info = getNftMetaInfoFromRevealOpreturn(lastVout.scriptPubKey.hex, lastVout.scriptPubKey.asm)
             }
+            let fairGenesisHeight = Math.max(commitHeight, utxoInfo.height - 20);
             tokens.push({
                 symbol: symbol,
                 category: category,
                 name: name,
                 decimals: decimals,
                 mintAmt: mintAmt,
-                revealHeight: utxoInfo.height,
+                revealHeight: fairGenesisHeight,
                 revealTxid: utxoInfo.tx_hash,
                 revealTxConfirmations: confirmations,
                 totalSupply: supply,
@@ -155,7 +154,7 @@ export async function getTokensBySymbol(symbol: string): Promise<Array<CRC20Toke
                 ...info
             });
         }
-    }
+    }))
     const map = getCategoryColorMap(tokens)
     tokens.forEach((v: any) => {
         if (map[v.category] === "green") {
@@ -170,10 +169,10 @@ export async function getTokensBySymbol(symbol: string): Promise<Array<CRC20Toke
 function getCategoryColorMap(tokens: any[]) {
     let categoryColorMap: any = {}
     let canonicalCategory = ""
-    for (let token of tokens) {
-        if (token.revealTxConfirmations >= 10) {
-            canonicalCategory = token.category
-            break
+    tokens.sort(function (a, b) { return a.revealHeight - b.revealHeight });
+    if (tokens.length > 0) {
+        if (tokens[0].revealTxConfirmations >= 10) {
+            canonicalCategory = tokens[0].category
         }
     }
     for (let token of tokens) {
@@ -190,7 +189,7 @@ function getCategoryColorMap(tokens: any[]) {
 
 
 
-async function getCovenantAddress(recipientPK: Uint8Array, metaInfo: Uint8Array, symbolLen: number) {
+function getCovenantAddress(recipientPK: Uint8Array, metaInfo: Uint8Array, symbolLen: number) {
     const contractAddress = getContractAddress(config.network, 'OP_3 OP_ROLL OP_SWAP OP_CHECKSIGVERIFY OP_SWAP OP_SPLIT OP_DROP OP_HASH160 76a914 OP_SWAP OP_CAT 88ac OP_CAT OP_0 OP_OUTPUTBYTECODE OP_EQUAL', [recipientPK, metaInfo, BigInt(symbolLen)], ["pubkey", "bytes", "int"])
     const addr = decodeCashAddress(contractAddress as string) as {
         payload: Uint8Array;
@@ -201,7 +200,7 @@ async function getCovenantAddress(recipientPK: Uint8Array, metaInfo: Uint8Array,
 }
 
 
-async function getMetaInfoFromGenesisOutput(scriptType: string, scriptPubkeyASM: string, scriptSigASM: string) {
+function getMetaInfoFromGenesisOutput(scriptType: string, scriptPubkeyASM: string, scriptSigASM: string) {
     let revealScriptHex = "537a7cad7c7f75a90376a9147c7e0288ac7e00cd87"
     if (scriptType != "scripthash") {
         return undefined
@@ -271,7 +270,7 @@ async function getMetaInfoFromGenesisOutput(scriptType: string, scriptPubkeyASM:
     const name = Buffer.from(metaInfo.slice(symbolLength * 2 + 2), 'hex').toString('utf8');
 
     let pk = Uint8Array.from(Buffer.from(recipientPK, 'hex'))
-    let address = await getCovenantAddress(pk, Buffer.from(metaInfo, 'hex'), symbolLength)
+    let address = getCovenantAddress(pk, Buffer.from(metaInfo, 'hex'), symbolLength)
     if (address === p2shAddressHash160) { // Not necessary, BCH's consensus rule ensures it's true
         return { name, decimals, symbol };
     } else {
