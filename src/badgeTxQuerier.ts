@@ -18,3 +18,5 @@ export class ChaingrapBadgeTxQuerier implements BadgeTxQuerier {
 }
 
 export const mainnetChaingrapBadgeTxQuerier = new ChaingrapBadgeTxQuerier()
+
+export default { ChaingrapBadgeTxQuerier, mainnetChaingrapBadgeTxQuerier }

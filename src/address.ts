@@ -18,3 +18,5 @@ export async function badgeNameToAddress(badgeName: string): Promise<string> {
     }
     return cashAddr
 }
+
+export default { addressToBadgeName, badgeNameToAddress }

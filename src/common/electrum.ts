@@ -82,3 +82,5 @@ export async function getElectrumClient() {
     }
     return electrumClientPromise
 }
+
+export default { getElectrumClient }

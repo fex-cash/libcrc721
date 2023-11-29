@@ -20,3 +20,5 @@ export function cashAddrToLock(addr: string) {
     const lockHex = Buffer.from((lock as any).bytecode).toString('hex');
     return lockHex;
 }
+
+export default { reverseHexBytes, cashAddrToLock }

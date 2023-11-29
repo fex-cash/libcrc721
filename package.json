@@ -1,7 +1,8 @@
 {
   "name": "libcrc721",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "crc721 library",
+  "type": "module",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "repository": {

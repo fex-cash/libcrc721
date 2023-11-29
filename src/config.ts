@@ -12,3 +12,5 @@ export const config: {
 export function getBadgeTxQuerier(): BadgeTxQuerier {
     return config.badgeTxQuerier || mainnetChaingrapBadgeTxQuerier
 }
+
+export default { config, getBadgeTxQuerier }

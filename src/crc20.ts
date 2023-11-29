@@ -340,3 +340,5 @@ async function _getTokenByCategory(category: string) {
         }
     }
 }
+
+export default { checkSymbol, getTokenByCategory, getTokensBySymbol }

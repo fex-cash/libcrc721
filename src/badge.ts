@@ -77,11 +77,12 @@ export async function getBadge(badgeName: string): Promise<Badge | null> {
   if (!canonicalToken) {
     return null
   }
+  const commitment = NftMinterContract.index2Commitment(index)
   const txId = await getBadgeTxQuerier().getTxId(canonicalToken.category, NftMinterContract.index2Commitment(index))
   if (!txId) {
     return null
-  } 
-  const singer: any = await getSinger(txId)
+  }
+  const singer: any = await getSinger(txId, canonicalToken.category, commitment)
   const badges = await getBadgesByAddress(singer)
   return badges.find(x => x.badgeName === badgeName) || null
 }
@@ -92,7 +93,7 @@ export async function getBadgesByAddress(owner: string): Promise<Badge[]> {
   const electrumClient = await getElectrumClient()
   const utxos = await electrumClient.getAddressUtxos(contractAddress as string)
   let result = await Promise.all(utxos.map(async utxo => {
-    const singer = await getSinger(utxo.tx_hash)
+    const singer = await getSinger(utxo.tx_hash, utxo.token_data?.category, utxo.token_data?.commitment)
     if (singer !== owner) {
       return null
     }
@@ -121,3 +122,5 @@ export async function getBadgesByAddress(owner: string): Promise<Badge[]> {
   }))
   return basgesResult.filter(v => v) as Badge[]
 }
+
+export default { checkBadgeSymbol, checkBadgeName, getBadgeName, splitBadgeName, getBadge, getBadgesByAddress }
