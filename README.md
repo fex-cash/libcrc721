@@ -31,31 +31,32 @@ export interface Badge {
 `BaseCRC20Token`
 ```ts
 export interface BaseCRC20Token {
-    symbol: string
-    category: string
-    name: string
-    decimals: number
-    mintAmt: number
-    totalSupply: number
-    isCanonical: boolean
+  symbol: string
+  category: string
+  name: string
+  decimals: number
+  mintAmt: number
+  totalSupply: number
+  isCanonical: boolean
+  revealHeight: number
 }
 ```
 
 `CRC20Token`
 ```ts
 export interface CRC20Token extends BaseCRC20Token {
-    type: "CRC20"
+  type: "CRC20"
 }
 ```
 
 `CRC721Token`
 ```ts
 export interface CRC721Token extends BaseCRC20Token {
-    authorAddress: string
-    baseTokenURI: string
-    mintPrice: number
-    feeCategory: string
-    type: "CRC721"
+  authorAddress: string
+  baseTokenURI: string
+  mintPrice: number
+  feeCategory: string
+  type: "CRC721"
 }
 ```
 
@@ -153,9 +154,9 @@ Users can query the transaction ID using their own API.
 ```ts
 import { config,BadgeTxQuerier } from 'libcrc721';
 const badgeTxQuerier:BadgeTxQuerier = {
-    getTxId(tokenCategory: string, commitment: string){
-        return fetch(<CUSTOMER_API_URL>)
-    }
+  getTxId(tokenCategory: string, commitment: string){
+    return fetch(<CUSTOMER_API_URL>)
+  }
 }
 config.badgeTxQuerier = badgeTxQuerier
 ```

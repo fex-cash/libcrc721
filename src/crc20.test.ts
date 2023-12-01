@@ -8,7 +8,7 @@ const TEST123 = {
     decimals: 8,
     mintAmt: 2000,
     revealTxid: '67dae50a85e445e95e44e2641b601b0888238ab2b5786d1838a6c73247873e29',
-    totalSupply: '21000000',
+    totalSupply: 21000000,
     type: 'CRC20',
     isCanonical: true
 }
@@ -22,7 +22,7 @@ const bchsArr = [
         mintAmt: 2100000000000000,
         revealHeight: 818788,
         revealTxid: '6ee8b944756d6d474ba25c2e5fe6e11f776f5fe9be63934c63c2758aafe786b4',
-        totalSupply: '100000000000',
+        totalSupply: 100000000000,
         type: 'CRC20',
         isCanonical: true
     },
@@ -34,7 +34,7 @@ const bchsArr = [
         mintAmt: 2100000000000000,
         revealHeight: 818790,
         revealTxid: '2f4d7b5ee1c441cb39c312cf85b7a56b4d5324364d64fe97fc97d09793229349',
-        totalSupply: '100000000000',
+        totalSupply: 100000000000,
         type: 'CRC20',
         isCanonical: false
     }

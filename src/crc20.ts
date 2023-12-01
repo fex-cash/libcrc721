@@ -14,6 +14,7 @@ interface BaseCRC20Token {
     mintAmt: number
     totalSupply: number
     isCanonical: boolean | undefined
+    revealHeight: number
 }
 
 export interface CRC20Token extends BaseCRC20Token {
@@ -78,11 +79,12 @@ async function getMetaInfoForSymbol(tx: any, symbol: string | undefined, checkSy
                     const result = getMetaInfoFromGenesisOutput(commitTx.vout[0].scriptPubKey.type, commitTx.vout[0].scriptPubKey.asm, vin.scriptSig.asm)
                     if (result) {
                         let commitHeight = commitTx.confirmations > 0 ? height - commitTx.confirmations + 1 : undefined
+                        const totalSupply = tx.vout.filter((v: any) => v?.tokenData?.category === category).reduce((acc: number, cur: any) => acc + Number(cur.tokenData.amount), 0)
                         if (checkSymbol && result.symbol == symbol) {
-                            return [category, result.name, result.decimals, mintAmt, tx.confirmations, tokenData.amount, commitHeight];
+                            return [category, result.name, result.decimals, mintAmt, tx.confirmations, totalSupply, commitHeight];
                         }
                         if (!checkSymbol) {
-                            return [result.symbol, category, result.name, result.decimals, mintAmt, tx.confirmations, tokenData.amount, commitHeight];
+                            return [result.symbol, category, result.name, result.decimals, mintAmt, tx.confirmations, totalSupply, commitHeight];
                         }
                     }
                 }
@@ -294,7 +296,6 @@ async function _getTokenByCategory(category: string) {
         return undefined
     }
     let genesisOut = tx.vout[0]
-    let scriptPubkeyBuffer = Buffer.from(genesisOut.scriptPubKey.hex, 'hex')
     if (genesisOut.scriptPubKey.type != 'scripthash') {
         return undefined
     }
