@@ -8,10 +8,13 @@ export async function getSinger(txId: string, category: string, commitment: stri
   const tx = await electrumClient.blockchain_transaction_get(txId, true)
   const preTx = await electrumClient.blockchain_transaction_get(tx.vin[0].txid, true)
   const vout = preTx.vout.find((x: any) => {
-    const {tokenData } = x
+    const { tokenData } = x
     return tokenData?.category === category && tokenData?.nft?.commitment === commitment
   })
-  const lockingBytecode = vout.scriptPubKey.hex
+  const lockingBytecode = vout?.scriptPubKey?.hex
+  if (!lockingBytecode) {
+    return
+  }
   const singer = lockingBytecodeToCashAddress(Buffer.from(lockingBytecode, "hex"), config.network === "testnet" ? CashAddressNetworkPrefix.testnet : CashAddressNetworkPrefix.mainnet)
   return singer
 }

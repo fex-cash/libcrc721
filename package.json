@@ -1,6 +1,6 @@
 {
   "name": "libcrc721",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "crc721 library",
   "type": "module",
   "main": "dist/cjs/index.js",
