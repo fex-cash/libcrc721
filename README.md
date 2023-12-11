@@ -39,24 +39,25 @@ export interface BaseCRC20Token {
   totalSupply: number
   isCanonical: boolean
   revealHeight: number
+  revealTxid: string
 }
 ```
 
 `CRC20Token`
 ```ts
 export interface CRC20Token extends BaseCRC20Token {
-  type: "CRC20"
+    type: "CRC20"
 }
 ```
 
 `CRC721Token`
 ```ts
 export interface CRC721Token extends BaseCRC20Token {
-  authorAddress: string
-  baseTokenURI: string
-  mintPrice: number
-  feeCategory: string
-  type: "CRC721"
+    authorAddress: string
+    baseTokenURI: string
+    mintPrice: number
+    feeCategory: string
+    type: "CRC721"
 }
 ```
 

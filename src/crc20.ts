@@ -15,6 +15,7 @@ interface BaseCRC20Token {
     totalSupply: number
     isCanonical: boolean | undefined
     revealHeight: number
+    revealTxid: string
 }
 
 export interface CRC20Token extends BaseCRC20Token {
@@ -258,7 +259,7 @@ function getMetaInfoFromGenesisOutput(scriptType: string, scriptPubkeyASM: strin
         symbolLength = OP_XMap[param0] // OP_1 ~ OP_16
     } else {
         try {
-            symbolLength = Number(vmNumberToBigInt(param0))
+            symbolLength = Number(vmNumberToBigInt(Buffer.from(param0, "hex")))
         } catch (e) {
             console.log('err:', e);
             return undefined

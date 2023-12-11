@@ -6,12 +6,19 @@ export class NftMinterContract {
     static index2Commitment(index: number) {
         if (index === 0) {
             return '00'
-        }
-        return binToHex(bigIntToVmNumber(BigInt(index)))
+          }
+          const hex = binToHex(bigIntToVmNumber(BigInt(index)))
+          if (hex.length > 8) {
+            throw new Error("index too large")
+          }
+          return hex
     }
 
     static commitment2Index(commitment: string) {
-        return Number(`0x${reverseHexBytes(commitment)}`)
+        if (commitment.length > 8) {
+            commitment = commitment.slice(0, 8)
+          }
+          return Number(`0x${reverseHexBytes(commitment)}`)
     }
 }
 
